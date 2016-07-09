@@ -18,7 +18,6 @@ void initialize_pin(int pin_number, int mode, int value) {
 
 int reg_get_pin_mode(int pin_number) {
     if (! IS_PIN_DEFINED(pin_number)) { return PIN_NOT_DEFINED_ERROR; }
-    if (states[pin_number].mode != MODE_INPUT) { return WRONG_MODE_ERROR; }
     return states[pin_number].mode;
 }
 
