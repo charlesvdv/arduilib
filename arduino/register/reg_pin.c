@@ -8,7 +8,7 @@
 
 static PinState states[PIN_NUMBER];
 
-void initialize_pin(int pin_number, Mode mode, Value value) {
+void initialize_pin(int pin_number, int mode, int value) {
     states[pin_number] = (PinState) {
         .defined = true,
         .mode = mode,
@@ -16,12 +16,13 @@ void initialize_pin(int pin_number, Mode mode, Value value) {
     };
 }
 
-Mode reg_get_pin_mode(int pin_number) {
-    if (! IS_PIN_DEFINED(pin_number)) { /* ERROR */ }
+int reg_get_pin_mode(int pin_number) {
+    if (! IS_PIN_DEFINED(pin_number)) { return PIN_NOT_DEFINED_ERROR; }
+    if (states[pin_number].mode != MODE_INPUT) { return WRONG_MODE_ERROR; }
     return states[pin_number].mode;
 }
 
-void reg_set_pin_mode(int pin_number, Mode mode) {
+void reg_set_pin_mode(int pin_number, int mode) {
     if (! IS_PIN_DEFINED(pin_number)) { 
         initialize_pin(pin_number, mode, VALUE_LOW);
         return;
@@ -29,14 +30,15 @@ void reg_set_pin_mode(int pin_number, Mode mode) {
     states[pin_number].mode = mode;
 } 
 
-Value reg_get_pin_value(int pin_number) {
-    if (! IS_PIN_DEFINED(pin_number)) { /* ERROR */ }
+int reg_get_pin_value(int pin_number) {
+    if (! IS_PIN_DEFINED(pin_number)) { return PIN_NOT_DEFINED_ERROR; }
     return states[pin_number].value;
 }
 
-void reg_set_pin_value(int pin_number, Value value) {
-    if (! IS_PIN_DEFINED(pin_number)) { /* ERROR */ }
-    if (states[pin_number].mode != MODE_OUTPUT) { /* ERROR */ }
+int reg_set_pin_value(int pin_number, int value) {
+    if (! IS_PIN_DEFINED(pin_number)) { return PIN_NOT_DEFINED_ERROR; }
+    if (states[pin_number].mode != MODE_OUTPUT) { return WRONG_MODE_ERROR; }
     states[pin_number].value = value;
+    return SUCCESS;
 }
 

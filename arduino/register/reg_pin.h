@@ -3,26 +3,27 @@
 
 #define PIN_NUMBER 50
 
-typedef enum {
-    MODE_INPUT = 1,
-    MODE_OUTPUT = 0
-} Mode;
+#define MODE_OUTPUT 0
+#define MODE_INPUT 1
 
-typedef enum {
-    VALUE_LOW = 0,
-    VALUE_HIGH = 1
-} Value;
+#define VALUE_LOW 0
+#define VALUE_HIGH 1
+
+#define SUCCESS 1
+#define PIN_NOT_DEFINED_ERROR 2
+#define WRONG_MODE_ERROR 3
+
 
 typedef struct {
     bool defined;
-    Mode mode;
-    Value value;
+    int mode;
+    int value;
 } PinState;
 
-Mode reg_get_pin_mode(int pin_number);
-void reg_set_pin_mode(int pin_number, Mode mode); 
+int reg_get_pin_mode(int pin_number);
+void reg_set_pin_mode(int pin_number, int mode);
 
-Value reg_get_pin_value(int pin_number);
-void reg_set_pin_value(int pin_number, Value value);
+int reg_get_pin_value(int pin_number);
+int reg_set_pin_value(int pin_number, int value);
 
 #endif
