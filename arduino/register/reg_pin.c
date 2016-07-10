@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "reg_pin.h"
 
@@ -41,3 +42,8 @@ int reg_set_pin_value(int pin_number, int value) {
     return SUCCESS;
 }
 
+PinState* reg_dump_pin_data() {
+    PinState *copy_states = malloc(sizeof(PinState) * PIN_NUMBER);
+    memcpy(copy_states, &states, sizeof(PIN_NUMBER) * PIN_NUMBER);
+    return copy_states;
+}
