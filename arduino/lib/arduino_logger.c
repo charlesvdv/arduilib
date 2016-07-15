@@ -16,9 +16,9 @@ void arduino_log_init() {
 
 char* arduino_log_dump() {
     char *s = json_dumps(array, 0);
-    puts(s);
     // free the memory of the JSON array
     json_decref(array);
+    return s;
 }
 
 void arduino_log_io(unsigned long time, PinState states[], int pin_number) {
