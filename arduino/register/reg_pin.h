@@ -1,6 +1,8 @@
 #ifndef _REG_PIN_H
 #define _REG_PIN_H
 
+#include <stdbool.h>
+
 #define PIN_NUMBER 50
 
 #define MODE_OUTPUT 0
