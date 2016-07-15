@@ -1,5 +1,7 @@
 #include <stdbool.h>
 
+#include "reg_time.h"
+
 // time in microseconds
 static unsigned long time = 0;
 // incrementation of the time after each loop
@@ -14,6 +16,9 @@ void reg_set_time_interval(int microseconds) {
 }
 
 unsigned long reg_increment_time() {
+    if (incr == 0) {
+        incr = DEFAULT_INCR_TIME;
+    }
     time += incr;
     return time;
 }
