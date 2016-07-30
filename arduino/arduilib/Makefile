@@ -1,10 +1,10 @@
-LIB_FILES := arduino_io.c arduino_time.c arduino_logger.c
-LIB_TEST_FILES := test_lib.c $(foreach file,$(LIB_FILES), test_$(file))
+ARDUILIB_FILES := arduilib_io.c arduilib_time.c arduilib_logger.c
+ARDUILIB_TEST_FILES := test_arduilib.c $(foreach file,$(LIB_FILES), test_$(file))
 
-OUT_TEST := /tmp/test_lib
+OUT_TEST := /tmp/test_arduilib
 
-all: $(LIB_FILES)
-	$(CC) $(FLAGS) -ljansson -c $(LIB_FILES) 
+all: $(ARDUILIB_FILES)
+	$(CC) $(FLAGS) -ljansson -c $(ARDUILIB_FILES)
 	mv *.o $(BIN_DIR)/
 
 test:
