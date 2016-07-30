@@ -7,6 +7,6 @@ void arduino_log_init();
 char* arduino_log_dump();
 
 void arduino_log_io(unsigned long time, PinState states[]);
-void arduino_log_error(char error[]);
+void arduino_log_error(unsigned long time, char* error);
 
 #endif
