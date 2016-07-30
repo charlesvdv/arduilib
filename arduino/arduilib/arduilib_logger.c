@@ -6,7 +6,7 @@
 
 static json_t *array;
 
-void arduino_log_init() {
+void arduilib_log_init() {
     array = json_array();
     if (!array) {
         fprintf(stderr, "Unable to create the json array.");
@@ -14,14 +14,14 @@ void arduino_log_init() {
     }
 }
 
-char* arduino_log_dump() {
+char* arduilib_log_dump() {
     char *s = json_dumps(array, 0);
     // free the memory of the JSON array
     json_decref(array);
     return s;
 }
 
-void arduino_log_io(unsigned long time, PinState states[], int pin_number) {
+void arduilib_log_io(unsigned long time, PinState states[], int pin_number) {
     json_t *root, *pin_data;
     root = json_object();
     json_object_set_new(root, "type", json_string("io"));
@@ -43,7 +43,7 @@ void arduino_log_io(unsigned long time, PinState states[], int pin_number) {
     json_array_append(array, root);
 }
 
-void arduino_log_error(unsigned long time, char *error) {
+void arduilib_log_error(unsigned long time, char *error) {
     json_t *object = json_object();
     json_object_set_new(object, "type", json_string("error"));
     json_object_set_new(object, "message", json_string(error));
