@@ -1,7 +1,7 @@
 export ROOT_DIR := $(realpath .)
 export BIN_DIR := $(ROOT_DIR)/bin
 
-SUBDIRS := $(ROOT_DIR)/lib $(ROOT_DIR)/register
+SUBDIRS := $(ROOT_DIR)/arduilib $(ROOT_DIR)/register
 
 export CC := gcc
 export FLAGS := -std=c99 $(foreach dir,$(SUBDIRS), -I $(dir)) \
