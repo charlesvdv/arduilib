@@ -1,4 +1,4 @@
-ARDUILIB_FILES := arduilib_io.c arduilib_time.c arduilib_logger.c
+ARDUILIB_FILES := arduilib_io.c arduilib_time.c arduilib_logger.c arduilib_error.c
 ARDUILIB_TEST_FILES := test_arduilib.c $(foreach file,$(LIB_FILES), test_$(file))
 
 OUT_TEST := /tmp/test_arduilib
