@@ -24,6 +24,15 @@ void arduilib_set_io_mode(int pin_number, int mode) {
     reg_set_pin_mode(pin_number, mode);
 }
 
+int arduilib_get_io_mode(int pin_number) {
+    int mode = reg_get_pin_mode(pin_number);
+    if (mode == PIN_NOT_DEFINED_ERROR) {
+        snprintf(err_msg, ERR_MSG_SIZE, ERR_PIN_UNDEFINED, pin_number);
+        arduilib_error_throw(reg_get_time(), err_msg, ERR_CODE_PIN_UNDEFINED);
+    }
+    return mode;
+}
+
 int arduilib_get_io_value(int pin_number) {
     int ret = reg_get_pin_value(pin_number);
     if (ret == PIN_NOT_DEFINED_ERROR) {

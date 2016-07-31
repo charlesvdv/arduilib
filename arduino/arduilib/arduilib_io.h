@@ -5,6 +5,7 @@
 #include "../register/reg_pin.h"
 
 void arduilib_set_io_mode(int pin_number, int mode);
+int arduilib_get_io_mode(int pin_number);
 int arduilib_get_io_value(int pin_number);
 void arduilib_set_io_value(int pin_number, int value);
 
