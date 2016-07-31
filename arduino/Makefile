@@ -14,6 +14,9 @@ build:
 	mkdir -p $(BIN_DIR)
 	set -e;  \
 	$(foreach dir,$(SUBDIRS), cd $(dir) && make all;)
+	$(CC) $(FLAGS) -c arduino_main.c arduino.c
+	mv *.o $(BIN_DIR)/
+	$(CC) $(FLAGS) $(BIN_DIR)/*.o -o test -ljansson
 
 test:
 	$(foreach dir,$(SUBDIRS), cd $(dir) && make test;)
