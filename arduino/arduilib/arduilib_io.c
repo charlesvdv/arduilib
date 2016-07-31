@@ -16,7 +16,7 @@
 char err_msg[ERR_MSG_SIZE];
 
 void arduilib_set_io_mode(int pin_number, int mode) {
-    if (mode != OUTPUT || mode != INPUT) {
+    if (mode != OUTPUT && mode != INPUT) {
         snprintf(err_msg, ERR_MSG_SIZE, ERR_WRONG_MODE,
                 pin_number, OUTPUT, INPUT, mode);
         arduilib_error_throw(reg_get_time(), err_msg, ERR_CODE_WRONG_MODE);
@@ -29,7 +29,7 @@ int arduilib_get_io_value(int pin_number) {
     if (ret == PIN_NOT_DEFINED_ERROR) {
         snprintf(err_msg, ERR_MSG_SIZE, ERR_PIN_UNDEFINED, pin_number);
         arduilib_error_throw(reg_get_time(), err_msg, ERR_CODE_PIN_UNDEFINED);
-    } else if (ret != LOW || ret != HIGH) {
+    } else if (ret != LOW && ret != HIGH) {
         snprintf(err_msg, ERR_MSG_SIZE, ERR_WRONG_VALUE,
                 pin_number, LOW, HIGH, ret);
         arduilib_error_throw(reg_get_time(), err_msg, ERR_CODE_WRONG_VALUE);
@@ -38,7 +38,7 @@ int arduilib_get_io_value(int pin_number) {
 }
 
 void arduilib_set_io_value(int pin_number, int value) {
-    if (value != LOW || value != HIGH) {
+    if (value != LOW && value != HIGH) {
         snprintf(err_msg, ERR_MSG_SIZE, ERR_WRONG_VALUE,
                 pin_number, OUTPUT, INPUT, value);
         arduilib_error_throw(reg_get_time(), err_msg, ERR_CODE_WRONG_VALUE);
