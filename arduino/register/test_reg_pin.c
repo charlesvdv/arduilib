@@ -18,11 +18,18 @@ START_TEST(test_pin_not_defined)
 }
 END_TEST
 
-START_TEST(test_pin_value)
+START_TEST(test_pin_value_output)
 {
     reg_set_pin_mode(1, MODE_OUTPUT);
     reg_set_pin_value(1, VALUE_HIGH);
     ck_assert_int_eq(reg_get_pin_value(1), VALUE_HIGH);
+}
+END_TEST
+
+START_TEST(test_pin_value_input)
+{
+    reg_set_pin_mode(1, MODE_INPUT);
+    ck_assert_int_eq(reg_get_pin_value(1), VALUE_LOW);
 }
 END_TEST
 
@@ -56,7 +63,8 @@ Suite* make_reg_pin_suite() {
 
     tcase_add_test(tc_core, test_pin_mode);
     tcase_add_test(tc_core, test_pin_not_defined);
-    tcase_add_test(tc_core, test_pin_value);
+    tcase_add_test(tc_core, test_pin_value_input);
+    tcase_add_test(tc_core, test_pin_value_output);
     tcase_add_test(tc_core, test_pin_mode_in_set_value);
     tcase_add_test(tc_core, test_pin_dump);
     suite_add_tcase(s, tc_core);
