@@ -37,10 +37,16 @@ void arduilib_log_io(unsigned long time, PinState states[], int pin_number) {
         json_object_set_new(pin, "mode", json_integer(states[i].mode));
 
         json_array_append(pin_data, pin);
+        // free the json_object as the json_array_append make a copy
+        // of this object.
+        json_decref(pin);
     }
 
     json_object_set_new(root, "data", pin_data);
     json_array_append(array, root);
+    // free the json_object as the json_array_append make a copy
+    // of this object.
+    json_decref(root);
 }
 
 void arduilib_log_error(unsigned long time, char *error) {
