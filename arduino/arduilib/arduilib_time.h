@@ -10,7 +10,7 @@ void arduilib_delay_milli(unsigned long milliseconds);
 // define arduino specific function
 #define millis() arduilib_get_time_millis()
 #define micros() arduilib_get_time_micros()
-#define delay(x) arduilib_set_delay_milli(x)
-#define delayMicroseconds(x) arduilib_set_delay_micro(x)
+#define delay(x) arduilib_delay_milli(x)
+#define delayMicroseconds(x) arduilib_delay_micro(x)
 
 #endif
