@@ -11,6 +11,7 @@ void setup() {
 
 void loop() {
     digitalWrite(12, HIGH);
-    int state = digitalRead(12);
-    printf("%i\n", state);
+    delay(20);
+    digitalWrite(12, LOW);
+    delay(20);
 }

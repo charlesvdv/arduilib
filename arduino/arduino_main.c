@@ -6,7 +6,7 @@
 #include "register/reg_time.h"
 #include "arduilib/arduilib_logger.h"
 
-#define MAX_TIME_RUNNING 200000
+#define MAX_TIME_RUNNING 500000
 
 int main() {
     arduilib_log_init();
@@ -15,7 +15,7 @@ int main() {
         loop();
     }
     char *s = arduilib_log_dump();
-    printf("out: %s\n", s);
+    printf("%s\n", s);
     free(s);
     return EXIT_SUCCESS;
 }
