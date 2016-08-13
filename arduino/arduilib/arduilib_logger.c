@@ -29,7 +29,7 @@ void arduilib_log_io(unsigned long time, PinState states[], int pin_number) {
 
     // fill pin_data
     pin_data = json_array();
-    for (int i = 0; i < pin_number; i++) {
+    for (int i = 1; i < pin_number; i++) {
         if (! states[i].defined) { continue; }
         json_t *pin = json_object();
         json_object_set_new(pin, "pin", json_integer(i));
