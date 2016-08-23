@@ -7,6 +7,8 @@ unsigned long arduilib_get_time_millis();
 void arduilib_delay_micro(unsigned long microseconds);
 void arduilib_delay_milli(unsigned long milliseconds);
 
+void arduilib_increment_time();
+
 // define arduino specific function
 #define millis() arduilib_get_time_millis()
 #define micros() arduilib_get_time_micros()

@@ -11,11 +11,12 @@
 int main() {
     arduilib_log_init();
     setup();
-    for(; arduilib_get_time_micros() < MAX_TIME_RUNNING; reg_increment_time()) {
+    // log the initial state of the IOs
+    PinState *states = reg_dump_pin_data();
+    arduilib_log_io(arduilib_get_time_millis(), states, PIN_NUMBER);
+    free(states);
+    for(; arduilib_get_time_micros() < MAX_TIME_RUNNING; arduilib_increment_time()) {
         loop();
-        PinState* states = reg_dump_pin_data();
-        arduilib_log_io(arduilib_get_time_micros(), states, PIN_NUMBER);
-        free(states);
     }
     char *s = arduilib_log_dump();
     printf("%s\n", s);

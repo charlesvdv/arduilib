@@ -9,7 +9,7 @@ static json_t *array;
 void arduilib_log_init() {
     array = json_array();
     if (!array) {
-        fprintf(stderr, "Unable to create the json array.");
+        fprintf(stderr, "Unable to create the json array.\n");
         exit(EXIT_FAILURE);
     }
 }
