@@ -7,6 +7,6 @@ all: $(ARDUILIB_FILES)
 	$(CC) $(FLAGS) -c $(ARDUILIB_FILES)
 	mv *.o $(BIN_DIR)/
 
-test:
+check:
 	# $(CC) $(FLAGS) -lcheck -o $(OUT_TEST) $(LIB_FILES) $(REGISTER_TEST_FILES)
 	# $(OUT_TEST)

@@ -22,3 +22,9 @@ unsigned long reg_increment_time() {
     time += incr;
     return time;
 }
+
+// Used for testing
+void reg_reset_time() {
+    time = 0;
+    incr = 0;
+}

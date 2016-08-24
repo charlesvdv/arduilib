@@ -8,4 +8,8 @@ unsigned long reg_get_time();
 void reg_set_time_interval(int microseconds);
 unsigned long reg_increment_time();
 
+#ifdef UNIT_TEST
+void reg_reset_time();
+#endif
+
 #endif

@@ -30,4 +30,8 @@ int reg_set_pin_value(int pin_number, int value);
 
 PinState* reg_dump_pin_data();
 
+#ifdef UNIT_TEST
+void reg_reset_pins();
+#endif
+
 #endif
