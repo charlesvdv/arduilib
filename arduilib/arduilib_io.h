@@ -17,6 +17,15 @@ void arduilib_set_io_value(int pin_number, int value);
 #define LOW VALUE_LOW
 #define HIGH VALUE_HIGH
 
+// Error code thrown by the IO module
+// when we give something different of 0/1 for mode/value
+#define ERR_CODE_BAD_IO_VALUE -1
+// when the mode is input and we want to set a value
+#define ERR_CODE_WRONG_MODE -2
+// when the pin has no mode defined
+#define ERR_CODE_PIN_UNDEFINED -3
+
+
 // arduino specific function
 #define pinMode(x, y) arduilib_set_io_mode(x, y)
 #define digitalWrite(x, y) arduilib_set_io_value(x, y)
