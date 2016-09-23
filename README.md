@@ -28,6 +28,6 @@ run `make all && ./arduino` to test your code.
 - [x] digitalRead, digitalWrite and pinMode
 - [x] millis, micros
 - [x] delai, delaiMicroseconds
-- [] attachInterrupt, detachInterrupt
-- [] analogRead, analogWrite
-- [] Serial.read, Serial.write
+- [ ] attachInterrupt, detachInterrupt
+- [ ] analogRead, analogWrite
+- [ ] Serial.read, Serial.write
