@@ -9,12 +9,12 @@ IO_WRAP_FLAGS := -Wl,--wrap=arduilib_handle_error -Wl,--wrap=reg_set_pin_mode \
 IO_TEST_OUT := /tmp/test_arduilib_io
 
 all: $(ARDUILIB_FILES)
-	$(CC) $(FLAGS) -c $(ARDUILIB_FILES)
+	$(CC) -c $(ARDUILIB_FILES) $(FLAGS)
 	mv *.o $(BIN_DIR)/
 
 check: test_io
 
 test_io:
 	@echo " === IO Arduino Library Tests === "
-	$(CC) $(TEST_FLAGS) $(IO_WRAP_FLAGS) $(IO_TEST_FILES) -o $(IO_TEST_OUT)
+	$(CC) $(IO_WRAP_FLAGS) $(IO_TEST_FILES) -o $(IO_TEST_OUT) $(TEST_FLAGS)
 	$(IO_TEST_OUT)
