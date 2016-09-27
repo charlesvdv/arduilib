@@ -1,0 +1,32 @@
+sudo: true
+dist: trusty
+language: c
+
+compiler:
+  - gcc-6
+
+install:
+  # Install cmocka
+  - wget https://cmocka.org/files/1.1/cmocka-1.1.0.tar.xz
+  - tar xf cmocka-1.1.0.tar.xz
+  - cd cmocka-1.1.0 && mkdir build && cd build
+  - cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release ..
+  - make
+  - sudo make install
+  - cd ../..
+  # Install jansson
+  - wget http://www.digip.org/jansson/releases/jansson-2.9.tar.gz
+  - tar xvf jansson-2.9.tar.gz && cd jansson-2.9
+  - mkdir build && cd build && cmake -DCMAKE_INSTALL_PREFIX=/usr .. && make && sudo make install
+  - cd ../..
+
+addons:
+  apt:
+    sources: ubuntu-toolchain-r-test
+    packages:
+      - gcc-6
+      - make
+
+script:
+  - make check
+  - make all && ./arduino
