@@ -4,10 +4,15 @@
 // needed for the MODE_* and VALUE_*
 #include "../register/reg_pin.h"
 
-void arduilib_set_io_mode(int pin_number, int mode);
+int arduilib_set_io_mode(int pin_number, int mode);
 int arduilib_get_io_mode(int pin_number);
 int arduilib_get_io_value(int pin_number);
-void arduilib_set_io_value(int pin_number, int value);
+int arduilib_set_io_value(int pin_number, int value);
+
+// arduino function definition
+void pinMode(int pin, int mode);
+int digitalRead(int pin);
+void digitalWrite(int pin, int value);
 
 // arduino constant needed for IO
 // mode
@@ -24,11 +29,5 @@ void arduilib_set_io_value(int pin_number, int value);
 #define ERR_CODE_WRONG_MODE -2
 // when the pin has no mode defined
 #define ERR_CODE_PIN_UNDEFINED -3
-
-
-// arduino specific function
-#define pinMode(x, y) arduilib_set_io_mode(x, y)
-#define digitalWrite(x, y) arduilib_set_io_value(x, y)
-#define digitalRead(x) arduilib_get_io_value(x)
 
 #endif

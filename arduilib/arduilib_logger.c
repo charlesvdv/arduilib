@@ -49,10 +49,11 @@ void arduilib_log_io(unsigned long time, PinState states[], int pin_number) {
     json_decref(root);
 }
 
-void arduilib_log_error(unsigned long time, char *error) {
+void arduilib_log_error(unsigned long time, char *error, int error_code) {
     json_t *object = json_object();
     json_object_set_new(object, "type", json_string("error"));
     json_object_set_new(object, "message", json_string(error));
     json_object_set_new(object, "time", json_integer(time));
+    json_object_set_new(object, "code", json_integer(error_code));
     json_array_append_new(array, object);
 }
