@@ -1,4 +1,5 @@
 # Arduinint
+[![Build Status](https://travis-ci.org/charlesvdv/arduinint.svg?branch=master)](https://travis-ci.org/charlesvdv/arduinint)
 
 Arduinint is an ARDUINo INTerpreter build to compile and test arduino
 code on your computer.
