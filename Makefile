@@ -25,6 +25,7 @@ build:
 	$(CC) $(BIN_DIR)/*.o -o arduino $(FLAGS)
 
 check:
+	set -e
 	$(foreach dir,$(SUBDIRS), cd $(dir) && make check;)
 
 clean:

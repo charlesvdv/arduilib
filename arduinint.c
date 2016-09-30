@@ -2,24 +2,20 @@
 #include <stdio.h>
 
 #include "arduino.h"
-#include "arduilib/arduilib_time.h"
-#include "register/reg_time.h"
 #include "arduilib/arduilib_logger.h"
+#include "arduilib/arduilib_time.h"
+#include "arduilib/arduilib_main.h"
 
 #define MAX_TIME_RUNNING 500000
 
 int main() {
-    arduilib_log_init();
+    arduilib_init();
+    // Launch the arduino setup() function
     setup();
-    // log the initial state of the IOs
-    PinState *states = reg_dump_pin_data();
-    arduilib_log_io(arduilib_get_time_millis(), states, PIN_NUMBER);
-    free(states);
-    for(; arduilib_get_time_micros() < MAX_TIME_RUNNING; arduilib_increment_time()) {
+    for(; arduilib_get_time_micros() <= MAX_TIME_RUNNING; arduilib_increment_time()) {
+        arduilib_update_loop();
+        // Launch the arduino loop() function
         loop();
     }
-    char *s = arduilib_log_dump();
-    printf("%s\n", s);
-    free(s);
-    return EXIT_SUCCESS;
+    arduilib_exit(EXIT_SUCCESS);
 }

@@ -1,8 +1,11 @@
 #include <jansson.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 
 #include "../register/reg_pin.h"
+
+#define MAX_FMT_SIZE 300
 
 static json_t *array;
 
@@ -10,6 +13,8 @@ void arduilib_log_init() {
     array = json_array();
     if (!array) {
         fprintf(stderr, "Unable to create the json array.\n");
+        // We will not exit with arduilib_exit because the JSON
+        // is not created.
         exit(EXIT_FAILURE);
     }
 }
@@ -49,10 +54,17 @@ void arduilib_log_io(unsigned long time, PinState states[], int pin_number) {
     json_decref(root);
 }
 
-void arduilib_log_error(unsigned long time, char *error, int error_code) {
+void arduilib_log_error(unsigned long time, int error_code, char *fmt, ...) {
+    // Format the error message
+    char formatted_message[MAX_FMT_SIZE];
+    va_list argptr;
+    va_start(argptr, fmt);
+    vsnprintf(formatted_message, MAX_FMT_SIZE, fmt, argptr);
+    va_end(argptr);
+
     json_t *object = json_object();
     json_object_set_new(object, "type", json_string("error"));
-    json_object_set_new(object, "message", json_string(error));
+    json_object_set_new(object, "message", json_string(formatted_message));
     json_object_set_new(object, "time", json_integer(time));
     json_object_set_new(object, "code", json_integer(error_code));
     json_array_append_new(array, object);
