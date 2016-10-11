@@ -1,0 +1,3 @@
+[submodule "subprojects/makeheaders"]
+	path = subprojects/makeheaders
+	url = https://github.com/andik/makeheaders

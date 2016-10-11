@@ -33,5 +33,5 @@
 *.su
 
 # Arduinint specifics
-bin/
-arduino
+build/
+interpreter/*/int_arduino_code.*
