@@ -8,13 +8,13 @@
 #define MAX_IO_EVENTS 50
 
 static mc_io_event_data io_events[MAX_IO_EVENTS];
-static int io_events_pos = 0;
+static int io_events_pos = -1;
 
 int mc_add_io_event(int time, int pin, int value) {
     if (! mc_is_digital_pin(pin)) { return MC_WRONG_PIN; }
     if (value != VALUE_LOW && value != VALUE_HIGH) { return MC_WRONG_VALUE; }
 
-    io_events[io_events_pos++] = (mc_io_event_data) {
+    io_events[++io_events_pos] = (mc_io_event_data) {
         .time = time,
         .pin = pin,
         .value = value
