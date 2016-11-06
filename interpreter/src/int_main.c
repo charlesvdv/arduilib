@@ -111,20 +111,21 @@ void int_init() {
 }
 
 int main(int argc, char *argv[]) {
-    int time = 0;
+    int last_loop_time = 0;
 
     int_handle_config(argc, argv);
     int_init();
     setup();
     int_loop_update(mc_get_time());
-    while ((time = mc_get_time()) <= max_time) {
+    while (mc_get_time() <= max_time) {
         loop();
         int_loop_update(mc_get_time());
 
         // Only increment time if we don't have delai in the arduino code.
-        if (time == mc_calculate_previous_time(time)) {
+        if (mc_get_time() == last_loop_time) {
             mc_increment_time();
         }
+        last_loop_time = mc_get_time();
     }
     int_exit(EXIT_SUCCESS);
 }
