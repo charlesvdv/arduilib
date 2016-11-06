@@ -1,0 +1,16 @@
+{
+    "board": "uno",
+    "running_time": 10,
+    "increment_time": 1,
+    "io_events": [
+        {
+            "time": 0,
+            "pin": 0,
+            "value": 1
+        }, {
+            "time": 5,
+            "pin": 1,
+            "value": 0
+        }
+    ]
+}
