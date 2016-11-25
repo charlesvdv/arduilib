@@ -153,10 +153,19 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    # Get absolute path given by the user.
+    if args.action == 'interpret':
+        config_path = os.path.abspath(args.config)
+        code_path = os.path.abspath(args.arduino_code)
+
+    # Change the working directory to the project directory.
+    project_dir = os.path.dirname(os.path.abspath(__file__))
+    os.chdir(project_dir)
+
     config = {}
     if args.action == 'interpret':
-        config = parse_config_file(args.config)
-        pre_interpreter(args.arduino_code)
+        config = parse_config_file(config_path)
+        pre_interpreter(code_path)
     elif args.action == 'test':
         config['board'] = 'uno'
         pre_interpreter('./interpreter/src/int_arduino_code_model.c', test=True)
