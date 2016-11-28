@@ -72,12 +72,7 @@ void int_handle_config(int argc, char *argv[]) {
 void int_loop_update(int time) {
     // Handle digital IO event.
     int prev_time = mc_calculate_previous_time(time);
-    int size = mc_get_io_events_size(prev_time, time);
-    mc_io_event_data io_events[size];
-    mc_get_io_events(prev_time, time, io_events, size);
-    for (int i = 0; i < size; i++) {
-        mc_force_digital_io_value(io_events[i].pin, io_events[i].value);
-    }
+    mc_execute_io_events(prev_time, time, mc_force_digital_io_value);
 
     mc_save_digital_io_state(time);
 }

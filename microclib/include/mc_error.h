@@ -14,7 +14,8 @@
     X(MC_FORCED_VALUE, "This pin has a forced value by an external event. Try to configure it before accessing it.") \
     X(MC_WRONG_INCR_TIME_VALUE, "The incrementation time is not correct.") \
     X(MC_FORBIDDEN_INCR_TIME_CHANGE, "It isn't possible to change the incrementation time while the program is running.") \
-    X(MC_UNDEFINED_INT, "The interrupt code is impossible.")
+    X(MC_UNDEFINED_INT, "The interrupt code is impossible.") \
+    X(MC_CALLBACK_ERR, "A callback error occured while running the code.")
 
 // Error code is always < 0.
 // Information code is always > 0.

@@ -7,6 +7,13 @@
 
 #define MAX_IO_EVENTS 50
 
+struct io_event_data {
+    int time;
+    int pin;
+    int value;
+};
+typedef struct io_event_data mc_io_event_data;
+
 static mc_io_event_data io_events[MAX_IO_EVENTS];
 static int io_events_pos = -1;
 
@@ -22,27 +29,15 @@ int mc_add_io_event(int time, int pin, int value) {
     return MC_SUCCESS;
 }
 
-int mc_get_io_events(int time1, int time2, mc_io_event_data io_ev[], int size) {   
-    int count = 0;
+int mc_execute_io_events(int time1, int time2, int (*handle_event)(int, int)) {
     for (int i = 0; i <= io_events_pos; i++) {
-        if (time1 <= io_events[i].time && io_events[i].time <= time2) {
-            memcpy(&io_ev[count++], &io_events[i], sizeof(mc_io_event_data));
-        }
-        if (count + 1 == size) {
-            return MC_SUCCESS; 
+        if ((time2 == 0 || time1 < io_events[i].time) && io_events[i].time <= time2) {
+            if (handle_event(io_events[i].pin, io_events[i].value) != MC_SUCCESS) {
+                return MC_CALLBACK_ERR;
+            }
         }
     }
     return MC_SUCCESS;
-}
-
-int mc_get_io_events_size(int time1, int time2) {
-    int count = 0;
-    for (int i = 0; i <= io_events_pos; i++) {
-        if (time1 <= io_events[i].time && io_events[i].time <= time2) {
-            count++; 
-        } 
-    }
-    return count;
 }
 
 void mc_reset_io_events() {
