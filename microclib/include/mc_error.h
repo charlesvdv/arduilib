@@ -24,6 +24,7 @@ enum mc_err {
     MC_SUCCESS = 0,
     MC_NOTHING_TO_DO,
     MC_INT_DISABLED,
+    MC_HISTORY_NOT_COMPLETE,
 
     USELESS = SHRT_MIN, // This entry is just used to put all the error code in negative number.
     // Error code.

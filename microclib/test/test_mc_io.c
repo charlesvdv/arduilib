@@ -22,19 +22,15 @@ static int teardown() {
 // Define PIN1 as an MODE_OUTPUT and PIN2 as an input one.
 static int setup() {
     int ret = mc_set_io_mode(PIN1, MODE_OUTPUT);
-    if (ret < 0) { return -1; }
-    ret = mc_set_io_mode(PIN2, MODE_INPUT);
-    if (ret < 0) { return ret; }
-    ret = mc_force_digital_io_value(PIN3, VALUE_HIGH);
+    ret += mc_set_io_mode(PIN2, MODE_INPUT);
+    ret += mc_force_digital_io_value(PIN3, VALUE_HIGH);
     return ret;
 }
 
 static int setup_get_value() {
     int ret = setup();
-    if (ret < 0) { return ret; }
-    ret = mc_force_digital_io_value(PIN1, VALUE_HIGH);
-    if (ret < 0) { return ret; }
-    ret = mc_force_digital_io_value(PIN2, VALUE_LOW);
+    ret += mc_force_digital_io_value(PIN1, VALUE_HIGH);
+    ret += mc_force_digital_io_value(PIN2, VALUE_LOW);
     return ret;
 }
 
@@ -122,29 +118,61 @@ static void test_get_value() {
     assert_int_equal(mc_get_digital_io_value(OTHER_PIN, &value), MC_PIN_UNDEFINED);
 }
 
-static void test_history() {
+int handle_basic_history(int time, mc_io_state *state) {
+    if (time != 0) {
+        return EXIT_FAILURE;
+    }
+    if ((state->pin == PIN1 && state->value == VALUE_HIGH) ||
+            (state->pin == PIN2 && state->value == VALUE_LOW) ||
+            (state->pin == PIN3 && state->value == VALUE_HIGH)) {
+        return EXIT_SUCCESS;
+    }
+    else {
+        return EXIT_FAILURE;
+    }
+}
+
+static void test_save_history() {
     mc_save_digital_io_state(0);
-    int size = mc_get_digital_io_history_size();
-    assert_int_equal(size, 1);
-    mc_io_log history[size];
-    mc_get_digital_io_history(history, size);
+    assert_int_equal(mc_handle_history(0, handle_basic_history), MC_SUCCESS);
 
-    assert_int_equal(history[0].time, 0);
-    assert_int_equal(history[0].states_size, 3);
-    assert_int_equal(history[0].states[0].value, VALUE_HIGH);
+    mc_free_digital_io_history();
+}
 
-    // Test with a second log in the history
-    mc_force_digital_io_value(PIN1, VALUE_LOW);
-    mc_save_digital_io_state(100);
+int handle_reset_changed(int time, mc_io_state *state) {
+    if (time == 1) {
+        // We should not have this time logged as we didn't change any value.
+        return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
+}
 
-    size = mc_get_digital_io_history_size();
-    assert_int_equal(size, 2);
-    mc_io_log history2[size];
-    mc_get_digital_io_history(history2, size);
+static void test_reset_changed_history() {
+    mc_save_digital_io_state(0);
 
-    assert_int_equal(history2[1].time, 100);
-    assert_int_equal(history2[1].states_size, 3);
-    assert_int_equal(history2[1].states[0].value, VALUE_LOW);
+    // Recall the same function.
+    test_get_value();
+
+    mc_save_digital_io_state(1);
+    assert_int_equal(mc_handle_history(1, handle_reset_changed), MC_SUCCESS);
+
+    mc_free_digital_io_history();
+}
+
+int handle_failure(int time, mc_io_state *state) {
+    return -1;
+}
+
+static void test_empty_history() {
+    assert_int_equal(mc_handle_history(0, handle_failure), MC_SUCCESS);
+}
+
+static void test_handle_function_failure() {
+    mc_save_digital_io_state(0);
+
+    assert_int_equal(mc_handle_history(0, handle_failure), MC_CALLBACK_ERR);
+
+    mc_free_digital_io_history();
 }
 
 int main() {
@@ -154,7 +182,10 @@ int main() {
         cmocka_unit_test_setup_teardown(test_set_value, setup, teardown),
         cmocka_unit_test_teardown(test_force_value, teardown),
         cmocka_unit_test_setup_teardown(test_get_value, setup_get_value, teardown),
-        cmocka_unit_test_setup_teardown(test_history, setup_get_value, teardown)
+        cmocka_unit_test_setup_teardown(test_save_history, setup_get_value, teardown),
+        cmocka_unit_test_setup_teardown(test_reset_changed_history, setup_get_value, teardown),
+        cmocka_unit_test(test_empty_history),
+        cmocka_unit_test_setup_teardown(test_handle_function_failure, setup_get_value, teardown)
     };
 
     return cmocka_run_group_tests_name("Digital IO Arduino Library", tests, NULL, NULL);

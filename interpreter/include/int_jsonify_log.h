@@ -7,7 +7,7 @@ void int_jsonifier_init();
 
 int int_log_error(int time, char error_msg[]);
 
-int int_jsonifier_io_states(mc_io_log io_states[], int size);
+int int_jsonify_io_state(int time, mc_io_state *state);
 
 char* int_get_log();
 

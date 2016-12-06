@@ -23,33 +23,57 @@ int int_log_error(int time, char error_msg[]) {
     return 0;
 }
 
-int int_jsonifier_io_states(mc_io_log io_states[], int size) {
-    json_t *states_root = json_array();
-    for (int i = 0; i < size; i++) {
-        mc_io_state *temp_states = io_states[i].states;
+int int_jsonify_io_state(int time, mc_io_state *state) {
+    json_t *pin_state, *io;
+    bool first = false;
 
-        json_t *states_log = json_array();
-        for (int j = 0; j < io_states[i].states_size; j++) {
-            json_t *pin_state_log = json_object(); 
-            json_object_set_new(pin_state_log, "pin", json_integer(temp_states[j].pin));
-            json_object_set_new(pin_state_log, "mode", json_integer(temp_states[j].mode));
-            json_object_set_new(pin_state_log, "value", json_integer(temp_states[j].value));
-            json_object_set_new(pin_state_log, "forced", json_boolean(temp_states[j].forced));
+    // Convert the io_state into JSON.
+    pin_state = json_object();
+    json_object_set_new(pin_state, "pin", json_integer(state->pin));
+    json_object_set_new(pin_state, "mode", json_integer(state->mode));
+    json_object_set_new(pin_state, "value", json_integer(state->value));
+    json_object_set_new(pin_state, "forced", json_boolean(state->forced));
 
-            json_array_append(states_log, pin_state_log);
-            json_decref(pin_state_log);
+    // Test if "io" root JSON object exist.
+    io = json_object_get(log, "io");
+    if (!json_is_array(io)) {
+        // Define the io object at the root of the log data.
+        json_t *array = json_array();
+        json_object_set(log, "io", array);
+        io = json_object_get(log, "io");
+        if (!json_is_array(io)) {
+            return -1;
         }
-        
-        json_t *states_info_log = json_object();
-        json_object_set_new(states_info_log, "time", json_integer(io_states[i].time));
-        json_object_set_new(states_info_log, "value", states_log);
-
-        json_array_append(states_root, states_info_log);
-
-        json_decref(states_info_log);
+        json_decref(array);
+        first = true;
     }
-    json_object_set_new(log, "io", states_root);
 
+    if (json_array_size(io) == 0 && ! first) {
+        return -1;
+    }
+
+    json_t *time_spec = json_array_get(io, json_array_size(io) - 1);
+    json_t *pin_value = json_object_get(time_spec, "value");
+
+    // Check if we already have this time saved.
+    if (json_integer_value(json_object_get(time_spec, "time")) != time || first) {
+        // Generate a new time value.
+        time_spec = json_object();
+        json_object_set_new(time_spec, "time", json_integer(time));
+
+        pin_value = json_array();
+        json_array_append(pin_value, pin_state);
+        json_object_set_new(time_spec, "value", pin_value);
+
+        json_array_append(io, time_spec);
+        json_decref(time_spec);
+    } else {
+        if (! json_is_array(pin_value)) {
+            return -1;
+        }
+        json_array_append(pin_value, pin_state);
+    }
+    json_decref(pin_state);
     return 0;
 }
 

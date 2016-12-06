@@ -79,11 +79,9 @@ void int_loop_update(int time) {
 
 void int_exit(int status) {
     // Transform the IO states in JSON
-    size_t io_logs_size = mc_get_digital_io_history_size();
-    mc_io_log io_logs[io_logs_size];
-    mc_get_digital_io_history(io_logs, io_logs_size);
-
-    int_jsonifier_io_states(io_logs, io_logs_size);
+    if (mc_handle_history(mc_get_time(), int_jsonify_io_state) != MC_SUCCESS) {
+        status = EXIT_FAILURE;
+    }
     mc_free_digital_io_history();
 
     // Display log before exiting.

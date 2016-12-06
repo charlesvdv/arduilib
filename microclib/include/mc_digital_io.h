@@ -12,6 +12,7 @@
 struct digital_io_state {
     bool defined;
     bool forced; // true if the value is forced (i.e. without the mode setup)
+    bool changed; // true if the pin was changed from the last save.
     int pin;
     int mode;
     int value;
@@ -20,8 +21,7 @@ typedef struct digital_io_state mc_io_state;
 
 struct digital_io_log {
     int time;
-    int states_size;
-    mc_io_state *states;
+    mc_io_state **states;
 };
 typedef struct digital_io_log mc_io_log;
 
@@ -35,7 +35,7 @@ int mc_set_io_mode(int pin, int mode);
  */
 int mc_get_io_mode(int pin, int *mode);
 
-/* 
+/*
  * Save the digital value for a given pin. Value should 0 or 1.
  */
 int mc_set_digital_io_value(int pin, int value);
@@ -45,7 +45,7 @@ int mc_set_digital_io_value(int pin, int value);
  */
 int mc_force_digital_io_value(int pin, int value);
 
-/* 
+/*
  * Read the digital value of a given pin. Value pointer should be
  * 0 or 1.
  */
@@ -57,14 +57,9 @@ int mc_get_digital_io_value(int pin, int *value);
 void mc_save_digital_io_state(int time);
 
 /*
- * Get the size of the current history.
+ * Call handle_history for each saved states.
  */
-int mc_get_digital_io_history_size();
-
-/*
- * Get all the digital IO history.
- */
-void mc_get_digital_io_history(mc_io_log history[], int size);
+int mc_handle_history(int max_time, int (*handle_history)(int, mc_io_state*));
 
 void mc_free_digital_io_history();
 
