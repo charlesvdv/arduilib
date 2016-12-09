@@ -12,22 +12,17 @@
 static int max_time = 20000;
 
 void int_parse_io_event_cli(char *arg) {
-    char *str;
     char *token;
     int event[3];
 
-    str = malloc(strlen(arg) + 1);
-    strncpy(str, arg, strlen(arg));
-
-    for(int i = 0; i < 3; str = NULL, i++) {
-        token = strtok(str, ":");
+    for(int i = 0; i < 3; arg = NULL, i++) {
+        token = strtok(arg, ":");
         event[i] = atoi(token);
         if (token == NULL) {
             fprintf(stderr, "IO event config parsing error.");
             exit(1);
         }
     }
-    free(str);
     if(mc_add_io_event(event[0], event[1], event[2]) != MC_SUCCESS) {
         fprintf(stderr, "IO event config parsing error.");
         exit(1);
