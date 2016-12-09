@@ -7,8 +7,7 @@ wget https://github.com/ninja-build/ninja/releases/download/v1.7.1/ninja-linux.z
 unzip ninja-linux.zip && sudo cp ninja /usr/bin && sudo chmod +x /usr/bin/ninja
 
 # Install meson
-sudo pip3 install meson
-sudo mv /usr/local/bin/meson.py /usr/local/bin/meson
+pip3 install meson
 
 # Install cmocka
 wget https://cmocka.org/files/1.1/cmocka-1.1.0.tar.xz
