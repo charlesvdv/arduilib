@@ -35,3 +35,7 @@
 # Arduinint specifics
 build/
 interpreter/*/int_arduino_code.*
+
+# Python
+*.pyc
+__pycache__/
