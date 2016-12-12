@@ -108,19 +108,25 @@ def run_interpreter(config):
     print(status.stdout.decode('utf-8'))
 
 def run_test():
+    success = 0
     status = subprocess.run('ninja -C ./build test', shell=True)
     if status.returncode != 0:
         with open('./build/meson-logs/testlog.txt', 'r') as f:
             print(f.read())
+    success += status.returncode
 
     print()
     status = subprocess.run('ninja -C ./build test-valgrind', shell=True)
     if status.returncode != 0:
         with open('./build/meson-logs/testlog-valgrind.txt', 'r') as f:
             print(f.read())
+    success += status.returncode
 
     print()
     status = subprocess.run('python3 ./integration_test/run_tests.py', shell=True)
+    success += status.returncode
+
+    return success
 
 def parse_config_file(config_file):
     if not is_path_correct(config_file, 'json'):
@@ -176,4 +182,5 @@ if __name__ == "__main__":
     if args.action == 'interpret':
         run_interpreter(config)
     elif args.action == 'test':
-        run_test()
+        success = run_test()
+        exit(success)
