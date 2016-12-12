@@ -64,12 +64,19 @@ void int_handle_config(int argc, char *argv[]) {
     }
 }
 
-void int_loop_update(int time) {
+void int_loop_before(int time) {
     // Handle digital IO event.
     int prev_time = mc_calculate_previous_time(time);
     mc_execute_io_events(prev_time, time, mc_force_digital_io_value);
+}
 
+void int_loop_save(int time) {
     mc_save_digital_io_state(time);
+}
+
+void int_loop_update(int time) {
+    int_loop_before(time);
+    int_loop_save(time);
 }
 
 void int_exit(int status) {
@@ -106,8 +113,9 @@ int main(int argc, char *argv[]) {
     setup();
     int_loop_update(mc_get_time());
     while (mc_get_time() <= max_time) {
+        int_loop_before(mc_get_time());
         loop();
-        int_loop_update(mc_get_time());
+        int_loop_save(mc_get_time());
 
         // Only increment time if we don't have delai in the arduino code.
         if (mc_get_time() == last_loop_time) {
