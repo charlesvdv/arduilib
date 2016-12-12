@@ -71,6 +71,16 @@ int int_jsonify_io_state(int time, mc_io_state *state) {
         if (! json_is_array(pin_value)) {
             return -1;
         }
+        // Check if the pin is already defined and delete
+        // the JSON object if it is.
+        for (int i = 0; i < json_array_size(pin_value); i++) {
+            json_t *data = json_array_get(pin_value, i);
+            if (json_integer_value(json_object_get(data, "pin")) == state->pin) {
+                json_array_remove(pin_value, i);
+                break;
+            }
+        }
+
         json_array_append(pin_value, pin_state);
     }
     json_decref(pin_state);
