@@ -3,6 +3,13 @@
 
 #include <stdbool.h>
 
+#ifdef BOARD_UNO
+#include "board/uno.h"
+#else
+#error This board is not defined.
+#endif
+
+
 /*
  * Test if the pin is a possible option.
  */
@@ -19,9 +26,5 @@ bool mc_is_interrupt(int interrupt);
  * Translate the interrupt number to his right digital pin.
  */
 int mc_convert_interrupt_to_interrupt_pin(int interrupt);
-
-#ifdef BOARD_UNO
-#include "board/uno.h"
-#endif
 
 #endif
