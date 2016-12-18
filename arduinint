@@ -1,152 +1,248 @@
 #!/usr/bin/python3
 import argparse
+import importlib
 import json
 import os
 import shutil
 import subprocess
 
-ARDUINO_CODE_HEADER = './interpreter/include/int_arduino_code.h'
-ARDUINO_CODE_SOURCE = './interpreter/src/int_arduino_code.c'
+from tests.helper import TestHelper
 
-COMPILE_MKHDR_CMD = ['make', '-C', './subprojects/makeheaders']
-MKHDR_CMD = ['./subprojects/makeheaders/makeheaders', '-h', ARDUINO_CODE_SOURCE]
+class Interpreter():
+    BOARD = ['uno']
 
-INTERN_ERROR_MSG = 'Internal error. Try to redownload the project'
+    def __init__(self, code_path, conf):
+        self.code_path = code_path
+        if isinstance(conf, str):
+            self.conf = self._parse_config(conf)
+        else:
+            self.conf = conf
 
-BOARD = ['uno']
+        self.C = InterpreterConstant()
 
-def handle_cmd_fail(status, msg=''):
-    if status.returncode == 0:
-        return
+    # Prepare the interpreter that will be compiled and runned/tested afterwards.
+    def config(self):
+        # Download and compile makeheaders.
+        if not os.path.exists(self.C.PATH['mkheader_makefile']):
+            self._execute_cmd_build(self.C.CMD['gitsub'])
 
-    if msg:
-        print(msg)
-    if status.stdout:
-        print(status.stdout)
-    if status.stderr:
-        print(status.stderr)
-    exit(1)
+        self._execute_cmd_build(self.C.CMD['build_mkheader'].format(self.C.PATH['mkheader_dir']))
+        self.C = InterpreterConstant()
 
-def pre_interpreter(ino_path, test=False):
-    # Check the validity of .ino path
-    if not is_path_correct(ino_path, 'ino') and not test:
-        print("Unable to find your .ino file")
-        exit(1)
+        # Copy the arduino code inside the interpreter.
+        shutil.copyfile(self.code_path, self.C.PATH['interpret_ino_src'])
 
-    # Compile makeheaders.
-    status = subprocess.run(COMPILE_MKHDR_CMD, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    handle_cmd_fail(status, 'Unable to compile makeheaders')
+        # Include function prototype header.
+        with open(self.C.PATH['interpret_ino_src'], 'r+') as f:
+            lines = f.readlines()
+            lines.insert(0, '#include "int_arduino_code.h"\n')
+            f.seek(0)
+            f.writelines(lines)
 
-    # Copy .ino code into the interpreter directory.
-    try:
-        shutil.copyfile(ino_path, ARDUINO_CODE_SOURCE)
-    except IOError:
-        print('Unable to find your arduino code.')
-        exit(1)
+        # Copy the model header inside repository.
+        shutil.copyfile(self.C.PATH['interpret_ino_header_model'], self.C.PATH['interpret_ino_header'])
 
-    # Include function prototype header.
-    with open(ARDUINO_CODE_SOURCE, 'r+') as f:
-        lines = f.readlines()
-        lines.insert(0, '#include "int_arduino_code.h"\n')
-        f.seek(0)
-        f.writelines(lines)
+        # Run the makeheaders cmd.
+        status = self._cmd_runner(self.C.CMD['mkheader'].format(self.C.PATH['mkheader_cmd'],
+            self.C.PATH['interpret_ino_src']))
+        self._handle_error(status, 'Unable to generate header information for your code.')
+        prototype = status['stdout']
 
-    # Create the header for the .ino file.
-    # Copy the model into the right file.
-    try:
-        shutil.copyfile('./interpreter/include/int_arduino_code_model.h',
-                        ARDUINO_CODE_HEADER)
-    except IOError:
-        print(INTERN_ERROR_MSG)
-        exit(1)
+        # Generate final header file.
+        with open(self.C.PATH['interpret_ino_header'], 'r+') as f:
+            header = f.read()
+            header = header.replace('@@', prototype)
+            f.seek(0)
+            f.write(header)
 
-    # Create function prototype.
-    status = subprocess.run(MKHDR_CMD, stdout=subprocess.PIPE)
-    handle_cmd_fail(status, 'Unable to generate function prototype for your .ino')
-    auto_gen_prototype = status.stdout.decode('utf-8')
+    def compile(self, build='interpreter/src/interpreter', clean=False):
+        if not os.path.exists(self.C.PATH['build_dir']):
+            os.makedirs(self.C.PATH['build_dir'])
+        if not os.path.exists(self.C.PATH['ninja_build']):
+            self._execute_cmd_build(self.C.CMD['meson'].format(self.C.PATH['build_dir']))
 
-    # Generate final header file.
-    with open(ARDUINO_CODE_HEADER, 'r+') as f:
-        header = f.read()
-        header = header.replace('@@', auto_gen_prototype)
-        f.seek(0)
-        f.write(header)
+        # Reconfigure with the good board.
+        self._execute_cmd_build(self.C.CMD['mesonconf'].format(self.C.PATH['build_dir'],
+            self.conf['board'].upper()))
 
-def compile_interpreter(board):
-    # FIXME: Meson build system can't change the CFLAGS on the fly
-    # so we need to reconfigure and recompile everything.
-    if os.path.exists('./build'):
-        shutil.rmtree('./build')
-    os.makedirs('./build')
+        # Force the reconfiguration.
+        self._execute_cmd_build(self.C.CMD['ninja_reconf'].format(self.C.PATH['build_dir']))
 
-    cflags = 'CFLAGS=-DBOARD_{}'.format(board.upper())
-    status = subprocess.run('{} meson ./build'.format(cflags), shell=True, stdout=subprocess.DEVNULL)
-    handle_cmd_fail(status, 'Unable to initialize project build')
+        # The clean should be used when the compilation is done in less than a minute because
+        # ninja can't detect file change.
+        if clean:
+            self._execute_cmd_build(self.C.CMD['ninja_clean'].format(self.C.PATH['build_dir']))
 
-    status = subprocess.run("ninja -C ./build", shell=True, stdout=subprocess.DEVNULL)
-    handle_cmd_fail(status, 'Unable to compile the project')
+        # Compile!
+        self._execute_cmd_build(self.C.CMD['ninja'].format(self.C.PATH['build_dir'], build))
 
-def generate_interpreter_arguments(config):
-    cmd_arg = []
-    if 'running_time' in config:
-        cmd_arg.append('-r {}'.format(config['running_time']))
-    if 'increment_time' in config:
-        cmd_arg.append('-i {}'.format(config['increment_time']))
-    if 'io_events' in config:
-        for event in config['io_events']:
-            cmd_arg.append('-e {}:{}:{}'.format(event['time'], event['pin'], event['value']))
+    def run(self, valgrind=False):
+        interpreter_cmd = self.C.PATH['interpreter']
+        args = self._generate_interpreter_arguments()
 
-    return cmd_arg
+        cmd = '{} {}'.format(interpreter_cmd, args)
+        if valgrind:
+            cmd = '{} {}'.format(self.C.CMD['valgrind'], cmd)
 
+        # Launch interpreter.
+        status = self._cmd_runner(cmd)
+        self._handle_error(status)
 
-def run_interpreter(config):
-    status = subprocess.run(['./build/interpreter/src/interpreter'] +
-                            generate_interpreter_arguments(config),
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    if status.returncode != 0:
-        print(status.stderr.decode('utf-8'))
-    print(status.stdout.decode('utf-8'))
+        return {
+            'stdout': status['stdout'],
+            'stderr': status['stderr'],
+        }
 
-def run_test():
+    def unittests(self):
+        print('Running unit-tests...')
+        success = 0
+        status = self._cmd_runner(self.C.CMD['test'].format(self.C.PATH['build_dir']))
+        print(status['stdout'])
+        if status['stderr']:
+            print(status['stderr'])
+        success += status['code']
+        # Run the test suite under valgrind.
+        print('Running unit-tests under Valgrind...')
+        status = self._cmd_runner(self.C.CMD['test_valgrind'].format(self.C.PATH['build_dir']))
+        print(status['stdout'])
+        if status['stderr']:
+            print(status['stderr'])
+        success += status['code']
+
+        return success
+
+    def _generate_interpreter_arguments(self):
+        cmd_arg = ''
+        if 'running_time' in self.conf:
+            cmd_arg += '-r {} '.format(self.conf['running_time'])
+        if 'increment_time' in self.conf:
+            cmd_arg += '-i {} '.format(self.conf['increment_time'])
+        if 'io_events' in self.conf:
+            for event in self.conf['io_events']:
+                cmd_arg += '-e {}:{}:{} '.format(event['time'], event['pin'], event['value'])
+
+        return cmd_arg
+
+    def _parse_config(self, config):
+        c = json.loads(config)
+        if 'board' not in c:
+            print('Unable to find the board.')
+            exit(1)
+        if c['board'] not in self.BOARD:
+            print('Unable to find {} board.'.format(c['board']))
+            exit(1)
+        return c
+
+    # Run command and handle error.
+    def _execute_cmd_build(self, cmd, msg=''):
+        status = self._cmd_runner(cmd)
+        self._handle_error(status)
+
+    # Run command to return the status and the standard output/error.
+    def _cmd_runner(self, cmd):
+        status = subprocess.run(cmd, shell=True, stderr=subprocess.PIPE,
+                stdout=subprocess.PIPE)
+        return {
+            'code': status.returncode,
+            'stderr': status.stderr.decode('utf-8'),
+            'stdout': status.stdout.decode('utf-8')
+        }
+
+    def _handle_error(self, status, msg=''):
+        if status['code'] != 0:
+            print(msg)
+            if status['stdout']:
+                print('---------- stdout ----------')
+                print(status['stdout'])
+            if status['stderr']:
+                print('---------- stderr ----------')
+                print(status['stderr'])
+            exit(-1)
+
+    def _is_path_correct(self, path, extension):
+        return os.path.exists(path) and os.path.splitext(path)[1] == '.{}'.format(extension)
+
+class InterpreterConstant():
+    CMD = {
+        'gitsub': 'git submodule init && git submodule update',
+        'build_mkheader': 'make -C {}',
+        'mkheader': '{} -h {}',
+        'meson': 'meson {}',
+        'mesonconf': 'mesonconf {} -Dc_args=-DBOARD_{}',
+        'ninja_reconf': 'ninja -C {} reconfigure',
+        'ninja_clean': 'ninja -C {} -t clean all',
+        'ninja': 'ninja -C {} {}',
+        'valgrind': 'valgrind --error-exitcode=-1',
+        'test': 'mesontest -C {}',
+        'test_valgrind': 'mesontest -C {} --wrap=\'valgrind --error-exitcode=-1\'',
+    }
+    # Relative path from the directory of the project.
+    _REL_PATH = {
+        'mkheader_makefile': 'subprojects/makeheaders/Makefile',
+        'mkheader_dir': 'subprojects/makeheaders/',
+        'mkheader_cmd': 'subprojects/makeheaders/makeheaders',
+        'interpret_ino_src': 'interpreter/src/int_arduino_code.c',
+        'interpret_ino_src_model': 'interpreter/src/int_arduino_code_model.c',
+        'interpret_ino_header': 'interpreter/include/int_arduino_code.h',
+        'interpret_ino_header_model': 'interpreter/include/int_arduino_code_model.h',
+        'build_dir': 'build',
+        'ninja_build': 'build/build.ninja',
+        'interpreter': 'build/interpreter/src/interpreter',
+        'integration_tests': 'tests/',
+        'integration_tests_config': 'tests/{}/config.json',
+        'integration_tests_ino': 'tests/{}/test.ino',
+        'integration_tests_module': 'tests.{}.test',
+    }
+
+    def __init__(self):
+        self.PATH = self._build_absolute_path()
+
+    def get_abs_path(self, path):
+        abs_dir = os.path.dirname(os.path.abspath(__file__))
+        return '{}/{}'.format(abs_dir, path)
+
+    def _build_absolute_path(self):
+        PATH = {}
+        for key in self._REL_PATH:
+            PATH[key] = self.get_abs_path(self._REL_PATH[key])
+        return PATH
+
+CST = InterpreterConstant()
+
+def run_integration_tests():
+    print('Running integration tests...')
+    print('----------')
     success = 0
-    status = subprocess.run('ninja -C ./build test', shell=True)
-    if status.returncode != 0:
-        with open('./build/meson-logs/testlog.txt', 'r') as f:
-            print(f.read())
-    success += status.returncode
+    for testfolder in os.listdir(CST.PATH['integration_tests']):
+        absfolder = '{}{}'.format(CST.PATH['integration_tests'], testfolder)
+        if not testfolder.startswith('test_'): continue
 
-    print()
-    status = subprocess.run('ninja -C ./build test-valgrind', shell=True)
-    if status.returncode != 0:
-        with open('./build/meson-logs/testlog-valgrind.txt', 'r') as f:
-            print(f.read())
-    success += status.returncode
+        # Set config and code path.
+        config = ''
+        with open(CST.PATH['integration_tests_config'].format(testfolder), 'r') as f:
+            config = f.read()
+        code_path = CST.PATH['integration_tests_ino'].format(testfolder)
 
-    print()
-    status = subprocess.run('python3 ./integration_test/run_tests.py', shell=True)
-    success += status.returncode
+        test_int = Interpreter(code_path, config)
+        test_int.config()
+        # We have to clean because the tests run in less than a second interval thus ninja can't
+        # detect file changed.
+        test_int.compile(clean=True)
+        status = test_int.run(valgrind=True)
 
+        # Test if the output of the ino file is correct.
+        test_runner = importlib.import_module(CST._REL_PATH['integration_tests_module'].format(testfolder))
+        code = test_runner.run(status['stdout'])
+
+        success += code
+
+        name = os.path.basename(testfolder)
+        if code == TestHelper.SUCCESS_CODE:
+            print('{} OK!'.format(name))
+        else:
+            print('{} failed'.format(name))
+        print('----------')
     return success
-
-def parse_config_file(config_file):
-    if not is_path_correct(config_file, 'json'):
-        print('Unable to find your config file')
-        exit(1)
-
-    config = {}
-    with open(config_file) as f:
-        config = json.loads(f.read())
-    if 'board' not in config:
-        print('Unable to find the board.')
-        exit(1)
-    if config['board'] not in BOARD:
-        print('Unable to find {} board.'.format(config['board']))
-        exit(1)
-    return config
-
-def is_path_correct(path, extension):
-    return os.path.exists(path) and os.path.splitext(path)[1] == '.{}'.format(extension)
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -155,32 +251,41 @@ if __name__ == "__main__":
     parser_ex = subparsers.add_parser('interpret', help='the given arduino file')
     parser_ex.add_argument('arduino_code', help='arduino file that will be interpreted')
     parser_ex.add_argument('-c', '--config', help='json config file', required=True)
+    parser_ex.add_argument('-e', '--erase', help='clean the build before building',
+            action='store_true')
 
     parser_test = subparsers.add_parser('test', help='run test')
 
     args = parser.parse_args()
 
     # Get absolute path given by the user.
+    code_path = ''
     if args.action == 'interpret':
         config_path = os.path.abspath(args.config)
         code_path = os.path.abspath(args.arduino_code)
-
-    # Change the working directory to the project directory.
-    project_dir = os.path.dirname(os.path.abspath(__file__))
-    os.chdir(project_dir)
-
-    config = {}
-    if args.action == 'interpret':
-        config = parse_config_file(config_path)
-        pre_interpreter(code_path)
     elif args.action == 'test':
+        code_path = CST.PATH['interpret_ino_src_model']
+    else:
+        print('Please launch "arduinint interpret|test"')
+        exit(1)
+
+    if args.action == 'interpret':
+        config = ''
+        with open(config_path, 'r') as f:
+            config = f.read()
+    elif args.action == 'test':
+        config = {}
         config['board'] = 'uno'
-        pre_interpreter('./interpreter/src/int_arduino_code_model.c', test=True)
 
-    compile_interpreter(config['board'])
+    interpreter = Interpreter(code_path, config)
 
     if args.action == 'interpret':
-        run_interpreter(config)
+        interpreter.config()
+        interpreter.compile(clean=args.erase)
+        print(interpreter.run()['stdout'])
     elif args.action == 'test':
-        success = run_test()
+        interpreter.config()
+        interpreter.compile(build='test', clean=True)
+        success = interpreter.unittests()
+        success += run_integration_tests()
         exit(success)

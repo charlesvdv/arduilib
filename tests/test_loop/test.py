@@ -1,4 +1,4 @@
-from helper import *
+from tests.helper import *
 
 def run(data):
     helper = TestHelper(data)

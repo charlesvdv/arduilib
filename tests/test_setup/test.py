@@ -1,4 +1,4 @@
-from helper import TestHelper, TestHelperException
+from tests.helper import TestHelper, TestHelperException
 
 def run(data):
     helper = TestHelper(data)
