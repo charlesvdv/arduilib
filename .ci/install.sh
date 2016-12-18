@@ -6,7 +6,7 @@ set -e
 sudo mv /usr/bin/python3.5 /usr/bin/python
 
 # Install ninja
-wget https://github.com/ninja-build/ninja/releases/download/v1.7.1/ninja-linux.zip
+wget https://github.com/ninja-build/ninja/releases/download/v1.7.2/ninja-linux.zip
 unzip ninja-linux.zip && sudo cp ninja /usr/bin && sudo chmod +x /usr/bin/ninja
 
 # Install meson
