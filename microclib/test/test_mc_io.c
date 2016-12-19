@@ -6,6 +6,7 @@
 #include <stdbool.h>
 
 #include "mc_error.h"
+#include "mc_board.h"
 #include "mc_digital_io.h"
 
 #define PIN1 1
@@ -40,14 +41,13 @@ static void test_set_mode() {
     assert_int_equal(mc_set_io_mode(PIN2, MODE_OUTPUT), MC_SUCCESS);
 
     // Verify that we have the right things set.
-    int size = mc_get_io_dump_size();
-    mc_io_state io_states[size];
-    mc_get_io_dump(io_states, size);
-    assert_int_equal(io_states[0].mode, MODE_INPUT);
-    assert_int_equal(io_states[0].pin, PIN1);
-    assert_int_equal(io_states[0].defined, true);
-    assert_int_equal(io_states[0].value, 0);
-    assert_int_equal(io_states[1].mode, MODE_OUTPUT);
+    mc_io_state io_states[DIGITAL_PINS_END + 1];
+    mc_get_io_dump(io_states, DIGITAL_PINS_END + 1);
+    assert_int_equal(io_states[PIN1].mode, MODE_INPUT);
+    assert_int_equal(io_states[PIN1].pin, PIN1);
+    assert_int_equal(io_states[PIN1].defined, true);
+    assert_int_equal(io_states[PIN1].value, 0);
+    assert_int_equal(io_states[PIN2].mode, MODE_OUTPUT);
 
     // Check error returned by the function.
     assert_int_equal(mc_set_io_mode(PIN1, 34), MC_WRONG_MODE);
@@ -60,7 +60,6 @@ static void test_get_mode() {
     assert_int_equal(mode, MODE_OUTPUT);
     assert_int_equal(mc_get_io_mode(PIN2, &mode), MC_SUCCESS);
     assert_int_equal(mode, MODE_INPUT);
-    assert_int_equal(mc_get_io_mode(PIN3, &mode), MC_PIN_UNDEFINED);
 
     // Check error returned by the function.
     assert_int_equal(mc_get_io_mode(OTHER_PIN, &mode), MC_PIN_UNDEFINED);
@@ -69,13 +68,12 @@ static void test_get_mode() {
 
 static void test_set_value() {
     assert_int_equal(mc_set_digital_io_value(PIN1, VALUE_HIGH), MC_SUCCESS);
-    assert_int_equal(mc_set_digital_io_value(PIN3, VALUE_LOW), MC_PIN_UNDEFINED);
+    assert_int_equal(mc_set_digital_io_value(PIN3, VALUE_LOW), MC_WRONG_PIN_MODE);
 
-    int size = mc_get_io_dump_size();
-    mc_io_state io_states[size];
-    mc_get_io_dump(io_states, size);
+    mc_io_state io_states[DIGITAL_PINS_END + 1];
+    mc_get_io_dump(io_states, DIGITAL_PINS_END + 1);
 
-    assert_int_equal(io_states[0].value, VALUE_HIGH);
+    assert_int_equal(io_states[PIN1].value, VALUE_HIGH);
 
     // Check error returned by the function.
     assert_int_equal(mc_set_digital_io_value(PIN2, VALUE_LOW), MC_WRONG_PIN_MODE);
@@ -88,14 +86,13 @@ static void test_force_value() {
     assert_int_equal(mc_force_digital_io_value(PIN1, VALUE_HIGH), MC_SUCCESS);
     assert_int_equal(mc_force_digital_io_value(PIN2, VALUE_LOW), MC_SUCCESS);
 
-    int size = mc_get_io_dump_size();
-    mc_io_state io_states[size];
-    mc_get_io_dump(io_states, size);
+    mc_io_state io_states[DIGITAL_PINS_END + 1];
+    mc_get_io_dump(io_states, DIGITAL_PINS_END + 1);
 
-    assert_int_equal(io_states[0].value, VALUE_HIGH);
-    assert_true(io_states[0].defined);
-    assert_true(io_states[0].forced);
-    assert_int_equal(io_states[1].value, VALUE_LOW);
+    assert_int_equal(io_states[PIN1].value, VALUE_HIGH);
+    assert_true(io_states[PIN1].defined);
+    assert_true(io_states[PIN1].forced);
+    assert_int_equal(io_states[PIN2].value, VALUE_LOW);
 
     // Check error returned by the function.
     assert_int_equal(mc_force_digital_io_value(PIN1, 32), MC_WRONG_VALUE);

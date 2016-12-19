@@ -71,12 +71,6 @@ void mc_free_digital_io_history();
 void mc_get_io_dump(mc_io_state states[], int size);
 
 /*
- * Get the size of the array that should be given by
- * mc_get_io_dump function.
- */
-int mc_get_io_dump_size();
-
-/*
  * Reset the pin's value and mode to 0 and set defined to false.
  */
 void mc_reset_io_states();
