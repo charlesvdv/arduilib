@@ -14,8 +14,8 @@ struct int_store {
     void (*ISR)(void);
     mc_interrupt_mode mode;
 };
-struct int_store interrupts[INTERRUPT_MAX_SIZE];
 
+static struct int_store interrupts[INTERRUPT_MAX_SIZE];
 static bool interrupt_enabled = true;
 
 bool mc_is_interrupt_enabled() {
