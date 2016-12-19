@@ -47,13 +47,22 @@ static void test_convert_interrupt() {
     assert_int_equal(mc_convert_interrupt_to_interrupt_pin(2), MC_UNDEFINED_INT);
 }
 
+static void test_convert_pin_to_interrupt() {
+    assert_int_equal(mc_convert_interrupt_pin_to_interrupt(2), 0);
+    assert_int_equal(mc_convert_interrupt_pin_to_interrupt(3), 1);
+
+    assert_int_equal(mc_convert_interrupt_pin_to_interrupt(15), MC_PIN_UNDEFINED);
+    assert_int_equal(mc_convert_interrupt_pin_to_interrupt(0), MC_UNDEFINED_INT);
+}
+
 int main() {
     const struct CMUnitTest tests[] = {
         cmocka_unit_test(test_is_digital),
         cmocka_unit_test(test_is_input_analog),
         cmocka_unit_test(test_is_output_analog),
         cmocka_unit_test(test_is_interrupt),
-        cmocka_unit_test(test_convert_interrupt)
+        cmocka_unit_test(test_convert_interrupt),
+        cmocka_unit_test(test_convert_pin_to_interrupt)
     };
 
     return cmocka_run_group_tests_name("Board test", tests, NULL, NULL);

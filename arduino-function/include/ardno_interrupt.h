@@ -9,4 +9,6 @@ void interrupts();
 
 void noInterrupts();
 
+int digitalPinToInterrupt(int pin);
+
 #endif

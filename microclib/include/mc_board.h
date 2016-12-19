@@ -27,4 +27,9 @@ bool mc_is_interrupt(int interrupt);
  */
 int mc_convert_interrupt_to_interrupt_pin(int interrupt);
 
+/*
+ * Translate the pin into the right interupt number.
+ */
+int mc_convert_interrupt_pin_to_interrupt(int pin);
+
 #endif

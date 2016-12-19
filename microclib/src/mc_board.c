@@ -4,8 +4,8 @@
 bool mc_is_in_array(int value, const int array[], int size) {
     for (int i=0; i < size; i++) {
         if (value == array[i]) {
-            return true; 
-        } 
+            return true;
+        }
     }
     return false;
 }
@@ -24,8 +24,8 @@ bool mc_is_analog_output_pin(int pin) {
 
 bool mc_is_interrupt(int interrupt) {
     if (ONE_TO_ONE_MAPPING_PIN_INTERRUPT) {
-        return mc_is_in_array(interrupt, DIGITAL_PINS_INTERRUPTS, 
-                DIGITAL_PINS_INTERRUPTS_SIZE); 
+        return mc_is_in_array(interrupt, DIGITAL_PINS_INTERRUPTS,
+                DIGITAL_PINS_INTERRUPTS_SIZE);
     }
     return (0 <= interrupt && interrupt <= INTERRUPTS_END);
 }
@@ -38,4 +38,19 @@ int mc_convert_interrupt_to_interrupt_pin(int interrupt) {
         return interrupt;
     }
     return DIGITAL_PINS_INTERRUPTS[interrupt];
+}
+
+int mc_convert_interrupt_pin_to_interrupt(int pin) {
+    if (! mc_is_digital_pin(pin)) {
+        return MC_PIN_UNDEFINED;
+    }
+    if (ONE_TO_ONE_MAPPING_PIN_INTERRUPT) {
+        return pin;
+    }
+    for (int i = 0; i <= DIGITAL_PINS_INTERRUPTS_SIZE; i++) {
+        if (DIGITAL_PINS_INTERRUPTS[i] == pin) {
+            return i;
+        }
+    }
+    return MC_UNDEFINED_INT;
 }
